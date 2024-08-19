@@ -59,7 +59,7 @@ const Scroll : NextPage = () => {
     gui.addColor(boxMaterial, "color")
 
     // 線形補間
-    function lerp(x, y, a) {
+    function lerp(x : number, y : number, a : number) {
       return (1 - a) * x + a * y
     }
 
@@ -234,7 +234,7 @@ const Scroll : NextPage = () => {
           color: white;
           font-size: larger;
         }
-        
+
         section {
           color: white;
           min-height: 100vh;
