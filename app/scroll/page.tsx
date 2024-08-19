@@ -13,7 +13,7 @@ const Scroll : NextPage = () => {
     if (!canvas) return
 
     const gui = new dat.GUI({ width : 300 })
-    gui.show(true)
+    gui.show(false)
 
     const scene = new THREE.Scene()
     const textureLoader = new THREE.TextureLoader()
@@ -68,7 +68,7 @@ const Scroll : NextPage = () => {
     }
 
     // スクロールアニメーション
-    const animationScripts : object[] = []
+    const animationScripts : any[] = []
     animationScripts.push({
       start : 0,
       end : 40,
