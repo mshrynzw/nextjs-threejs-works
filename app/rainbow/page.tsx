@@ -1,3 +1,4 @@
+"use client"
 import { NextPage } from "next"
 import { useEffect, useRef } from "react"
 import * as dat from "lil-gui"
