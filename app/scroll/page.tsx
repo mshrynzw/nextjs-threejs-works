@@ -68,7 +68,7 @@ const Scroll : NextPage = () => {
     }
 
     // スクロールアニメーション
-    const animationScripts = []
+    const animationScripts : object[] = []
     animationScripts.push({
       start : 0,
       end : 40,
