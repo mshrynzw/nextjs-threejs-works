@@ -63,7 +63,7 @@ const Smoke : NextPage = () => {
       transparent : true
     })
     const smokeGeo = new THREE.PlaneGeometry(300, 300)
-    const smokeParticles = []
+    const smokeParticles : any = []
     for (let i = 0; i < 150; i++) {
       let particle = new THREE.Mesh(smokeGeo, smokeMaterial)
       particle.position.set(Math.random() * 500 - 250, Math.random() * 500 - 250, Math.random() * 1000 - 100)
