@@ -63,7 +63,7 @@ const Scroll : NextPage = () => {
       return (1 - a) * x + a * y
     }
 
-    function scalePercent(start, end) {
+    function scalePercent(start : number, end : number) {
       return (scrollRef.current - start) / (end - start)
     }
 
