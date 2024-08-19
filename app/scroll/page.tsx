@@ -1,9 +1,10 @@
+"use client"
 import { NextPage } from "next"
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import * as dat from "lil-gui"
 
-const Home : NextPage = () => {
+const Scroll : NextPage = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const scrollRef = useRef(0)
 
@@ -245,4 +246,4 @@ const Home : NextPage = () => {
   )
 }
 
-export default Home
+export default Scroll
