@@ -1,13 +1,13 @@
 "use client"
 import { NextPage } from "next"
 import { useEffect, useRef } from "react"
-import * as dat from "lil-gui"
 import * as THREE from "three"
+import * as dat from "lil-gui"
+import { OrbitControls } from "three-stdlib"
+import vertexShader from "@/app/shaders/vertexShader.glsl"
+import fragmentShader from "@/app/shaders/fragmentShader.glsl"
 
-// tslint:disable-next-line:no-var-requires
-const Perlin = require("perlin.js")
-
-const Rainbow : NextPage = () => {
+const Home : NextPage = () => {
   const canvasRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -16,106 +16,149 @@ const Rainbow : NextPage = () => {
     canvasRef.current = canvas
 
     const gui = new dat.GUI({ width : 300 })
-    gui.show(false)
+    gui.show(true)
 
     const scene = new THREE.Scene()
+
     const sizes = {
       width : innerWidth,
       height : innerHeight
     }
+
+    // Camera
     const camera = new THREE.PerspectiveCamera(
-      45,
+      75,
       sizes.width / sizes.height,
-      0.001,
-      1000
+      0.1,
+      100
     )
-    // camera.position.x +=1000
+    camera.position.set(0, 0.23, 0)
+
+    // Controls
+    const controls = new OrbitControls(camera, canvas)
+    controls.enableDamping = true
+
     const renderer = new THREE.WebGLRenderer({
       canvas : canvas
     })
     renderer.setSize(sizes.width, sizes.height)
-    renderer.setPixelRatio(window.devicePixelRatio)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
-    // ボックスジオメトリー
-    let lineArrTop = []
-    let lineArrBottom = []
-    const lineNum = 250
-    const lineLength = 15
-    const segmentNum = 100
-    const amplitude = 2.5
 
-    for (let i = 0; i < lineNum; i++) {
-      const pointsTop = []
-      const pointsBottom = []
+    // Geometry
+    const geometry = new THREE.PlaneGeometry(10, 10, 512, 512)
 
-      for (let j = 0; j <= segmentNum; j++) {
-        const x = ((lineLength / segmentNum) * j) - lineLength / 2
-        const y = 0
-        const z = i * 0.3 - ((lineNum * 0.3) / 2)
+    const colorObject : object = {}
+    colorObject.depthColor = "#b8e6ff"
+    colorObject.surfaceColor = "#66c1f9"
 
-        const p = new THREE.Vector3(x, y, z)
-        pointsTop.push(p)
-        pointsBottom.push(p)
+    const material = new THREE.ShaderMaterial({
+      vertexShader : vertexShader,
+      fragmentShader : fragmentShader,
+      uniforms : {
+        uWaveLength : { value : 0.38 },
+        uFrequency : { value : new THREE.Vector2(6.6, 3.5) },
+        uTime : { value : 0 },
+        uWaveSpeed : { value : 0.75 },
+        uDepthColor : { value : new THREE.Color(colorObject.depthColor) },
+        uSurfaceColor : { value : new THREE.Color(colorObject.surfaceColor) },
+        uColorOffset : { value : 0.03 },
+        uColorMultiplier : { value : 9.0 },
+        uSmallWaveElevation : { value : 0.15 },
+        uSmallWaveFrequency : { value : 3.0 },
+        uSmallWaveSpeed : { value : 0.2 }
       }
+    })
 
-      const geometryTop = new THREE.BufferGeometry().setFromPoints(pointsTop)
-      const geometryBottom = new THREE.BufferGeometry().setFromPoints(pointsBottom)
+    gui
+    .add(material.uniforms.uWaveLength, "value")
+    .min(0)
+    .max(1)
+    .step(0.001)
+    .name("uWaveLength")
 
-      const material = new THREE.LineBasicMaterial({ color : 0xffffff })
+    gui
+    .add(material.uniforms.uFrequency.value, "x")
+    .min(0)
+    .max(10)
+    .step(0.001)
+    .name("uFrequencyX")
 
-      const lineTop = new THREE.Line(geometryTop, material)
-      lineArrTop[i] = lineTop
-      scene.add(lineArrTop[i])
+    gui
+    .add(material.uniforms.uFrequency.value, "y")
+    .min(0)
+    .max(10)
+    .step(0.001)
+    .name("uFrequencyY")
 
-      const lineBottom = new THREE.Line(geometryBottom, material)
-      lineBottom.position.y += 5
-      lineArrBottom[i] = lineBottom
-      scene.add(lineArrBottom[i])
-    }
+    gui
+    .add(material.uniforms.uWaveSpeed, "value")
+    .min(0)
+    .max(4)
+    .step(0.001)
+    .name("uWaveSpeed")
 
-    // ライト
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7)
-    scene.add(ambientLight)
-    const pointLight = new THREE.PointLight(0xffffff, 0.8)
-    pointLight.position.set(0, -1, 5)
-    scene.add(pointLight)
+    gui
+    .add(material.uniforms.uColorOffset, "value")
+    .min(0)
+    .max(1)
+    .step(0.001)
+    .name("uColorOffset")
 
+    gui
+    .add(material.uniforms.uColorMultiplier, "value")
+    .min(0)
+    .max(10)
+    .step(0.001)
+    .name("uColorMultiplier")
+
+    gui
+    .add(material.uniforms.uSmallWaveElevation, "value")
+    .min(0)
+    .max(1)
+    .step(0.001)
+    .name("uSmallWaveElevation")
+
+    gui
+    .add(material.uniforms.uSmallWaveFrequency, "value")
+    .min(0)
+    .max(30)
+    .step(0.001)
+    .name("uSmallWaveFrequency")
+
+    gui
+    .add(material.uniforms.uSmallWaveSpeed, "value")
+    .min(0)
+    .max(4)
+    .step(0.001)
+    .name("uSmallWaveSpeed")
+
+    gui.addColor(colorObject, "depthColor").onChange(() => {
+      material.uniforms.uDepthColor.value.set(colorObject.depthColor)
+    })
+
+    gui.addColor(colorObject, "surfaceColor").onChange(() => {
+      material.uniforms.uSurfaceColor.value.set(colorObject.surfaceColor)
+    })
+
+    // Mesh
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.rotation.x = -Math.PI / 2
+    mesh.position.set(0, 0, 0)
+    scene.add(mesh)
+
+    // アニメーション
+    const clock = new THREE.Clock()
     const render = () => {
-      camera.position.set(5, 0, 5) // カメラの位置を設定（例: z軸方向に5の位置）
-      camera.lookAt(0, 0, -5) // カメラが原点を向くように設定
+      const elapsedTime = clock.getElapsedTime()
+      material.uniforms.uTime.value = elapsedTime
+      camera.position.x = Math.sin(elapsedTime * 0.2) * 2.0
+      camera.position.z = Math.cos(elapsedTime * 0.2) * 2.0
 
-      for (let i = 0; i < lineNum; i++) {
-        const lineTop = lineArrTop[i]
-        const lineBottom = lineArrBottom[i]
-        const positionsTop = lineTop.geometry.attributes.position.array
-        const positionsBottom = lineBottom.geometry.attributes.position.array
-        const time = Date.now() / 4000
+      camera.lookAt(Math.cos(elapsedTime), Math.sin(elapsedTime) * 0.5, Math.sin(elapsedTime) * 0.4)
 
-        for (let j = 0; j <= segmentNum; j++) {
-          const x = ((lineLength / segmentNum) * j) - lineLength / 2
-          const px = j / (50 + i)
-          const py = i / 50 + time
-          const y = amplitude * Perlin.perlin2(px, py) - 2
-          const z = i * 0.3 - ((lineNum * 0.3) / 2) - 7.5
-          positionsTop[j * 3] = x
-          positionsTop[j * 3 + 1] = y
-          positionsTop[j * 3 + 2] = z
-          positionsBottom[j * 3] = x
-          positionsBottom[j * 3 + 1] = y
-          positionsBottom[j * 3 + 2] = z
-        }
-
-        const h = Math.round((i / lineNum) * 360)
-        const s = 100
-        const l = Math.round((i / lineNum) * 100)
-        const color = new THREE.Color(`hsl(${h},${s}%,${l}%)`)
-
-        lineTop.material.color = color
-        lineBottom.material.color = color
-        lineTop.geometry.attributes.position.needsUpdate = true
-        lineBottom.geometry.attributes.position.needsUpdate = true
-      }
-
+      scene.add(camera)
+      controls.update()
       window.requestAnimationFrame(render)
       renderer.render(scene, camera)
     }
@@ -130,15 +173,28 @@ const Rainbow : NextPage = () => {
       camera.updateProjectionMatrix()
 
       renderer.setSize(sizes.width, sizes.height)
-      renderer.setPixelRatio(window.devicePixelRatio)
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     })
   }, [])
 
   return (
     <>
       <canvas id="canvas"></canvas>
+      <header>
+        <h3 className="logo">Shader.com</h3>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </header>
+
+      <main>
+        <h1>Dive Into Deep</h1>
+        <p>Going deeper into Three.js...</p>
+      </main>
     </>
   )
 }
 
-export default Rainbow
+export default Home
